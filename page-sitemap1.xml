@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?><?xml-stylesheet type="text/xsl" href="https://www.publicar.org/sitemaps_xsl.xsl"?><urlset xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9 http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd" xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
 <url>
 <loc>https://www.publicar.org/</loc>
-<lastmod>2026-02-23T14:19:33-03:00</lastmod></url>
-<url>
-<loc>https://www.publicar.org/contacto/</loc>
-<lastmod>2026-02-23T14:11:00-03:00</lastmod></url>
+<lastmod>2026-06-24T10:54:36-03:00</lastmod></url>
 <url>
 <loc>https://www.publicar.org/politica-de-privacidad/</loc>
-<lastmod>2026-02-23T14:10:04-03:00</lastmod></url></urlset>
+<lastmod>2026-06-24T10:41:53-03:00</lastmod></url>
+<url>
+<loc>https://www.publicar.org/contacto/</loc>
+<lastmod>2026-06-24T10:41:53-03:00</lastmod></url></urlset>
