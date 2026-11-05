@@ -180,7 +180,7 @@
     <!-- Monitor CRT Fósforo Verde -->
     <div class="screen">
         <div class="screen-header">
-            <div>MODO ANALÍTICO DE RICOEUR | V 0.1</div>
+            <div><b>DISPOSITIVO "LOS SIGNOS DEL SUFRIR"</b></div>
             <div id="live-coords">EJE X: 0.0 | EJE Y: 0.0</div>
         </div>
         
@@ -221,8 +221,14 @@
                 <span class="cardinal-label right">OTROS [E]</span>
             </div>
         </div>
-
+        Desliza el indicador de ambos ejes.
+        <hr>
     </div>
+    <div class="control-panel">
+
+    "Desde la perspectiva fenomenológica, propongo distribuir los signos del sufrir, sobre dos ejes que distarán de ser ortogonales." -- Paul Ricoeur, EL SUFRIMIENTO NO ES DOLOR.
+    </div>
+
 </div>
 
 <script>
@@ -256,13 +262,13 @@
 
         if (x === 0 && y === 0) {
             title = "ESTADO: UMBRAL NEUTRO";
-            desc = "Punto de equilibrio dinámico. El yo está alerta pero sin afectación u obrar dominante. Frontera abierta entre el dolor orgánico y la psique.";
+            desc = "Punto de equilibrio dinámico. El yo está alerta pero sin afectación u obrar dominante. Frontera abierta entre el dolor orgánico y la psique. Punto donde se cruzan los ejes.";
             tempText = "TEMPLADA (0%)";
             pressText = "0% (EQUILIBRIO)";
         } 
         else if (x <= 0 && y > 0) {
             title = "PERFIL: AUTONOMÍA SOBERANA";
-            desc = "El sujeto domina su acción (El Hombre Capaz). Ante el dolor físico, el yo mantiene la capacidad de articular discursos y aguantar de forma reflexiva.";
+            desc = "El sujeto domina su acción (El Hombre Capaz). Ante el dolor físico, el yo mantiene la capacidad de articular discursos y aguantar, pero de una forma reflexiva.";
             tempText = "FRÍA / ESTABLE";
             pressText = `${Math.abs(x) * 10}% (BAJA - INTEGRACIÓN)`;
         }
