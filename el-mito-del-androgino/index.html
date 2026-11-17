@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>El andrógino de Platón · modelo 2D y 3D</title>
+<style>
+body{margin:0;background:#faf7f0;color:#2b2b2b;font:14px/1.55 system-ui,Segoe UI,Roboto,sans-serif}
+.wrap{max-width:1060px;margin:0 auto;padding:18px}
+h1{font:600 22px/1.3 Georgia,serif;margin:0 0 4px}
+p.sub{margin:0 0 14px;color:#6b6257;font-size:13px}
+.card{background:#fff;border:1px solid #e3ddd2;border-radius:10px;padding:12px;margin:0 0 16px}
+.row{display:flex;gap:14px;flex-wrap:wrap;align-items:center;margin:0 0 10px}
+button,select{font:13px system-ui;padding:6px 10px;border:1px solid #c9c1b4;border-radius:6px;background:#f4efe6;cursor:pointer}
+button:hover{background:#e9e2d5}
+#lam svg{width:100%;height:auto;display:block}
+#v3{width:100%;height:440px;border-radius:8px;overflow:hidden}
+small{color:#6b6257}
+</style>
+</head>
+<body><div class="wrap">
+<h1>El ser humano originario · Platón, <i>Banquete</i> 189e–190b</h1>
+<p class="sub">Reconstrucción paramétrica de las tres versiones anteriores al corte de Zeus: masculina (Sol), femenina (Tierra), andrógina (Luna). La lámina 2D y el volumen 3D se generan con la misma lista de piezas.</p>
+
+<div class="card">
+ <div class="row"><b>1 · Lámina 2D</b>
+  <label>Vista: <select id="view">
+   <option value="obl">oblicua (se cuentan los 8 miembros)</option>
+   <option value="front">frontal (los 2 rostros de perfil)</option>
+   <option value="side">lateral (un rostro de frente)</option>
+  </select></label>
+  <button id="dl2">Descargar SVG</button>
+ </div>
+ <div id="lam"></div>
+</div>
+
+<div class="card">
+ <div class="row"><b>2 · Modelo 3D</b>
+  <label>Corte de Zeus (190d): <input id="cut" type="range" min="0" max="100" value="0"></label>
+  <label><input id="spin" type="checkbox"> giro automático</label>
+  <select id="which"><option value="0">I masculino</option><option value="1">II femenino</option><option value="2">III andrógino</option></select>
+  <button id="dl3">Descargar STL (mm)</button>
+ </div>
+ <div id="v3"></div>
+ <small>Arrastrar para orbitar, rueda para acercar. El deslizador separa las dos mitades y deja ver la superficie del corte.</small>
+</div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+<script>
+/* ===== PARÁMETROS EDITABLES ===== */
+var R=1, HR=0.46, HEAD=[0,1.72,0];   // radio del tronco, radio y centro de la cabeza
+var AZ=[45,135,225,315];             // acimut de los 8 miembros
+var FACE=[0,180];                    // dirección de los dos rostros
+var MALE="#2e6fb7", FEM="#c2417a", INK="#2b2b2b", WOUND="#a83a32";
+var TYPES=[
+ {id:"masculino",n:"I · MASCULINO (Sol)",b:"#e0a33e",s:"#8a5a16",g:["M","M"]},
+ {id:"femenino",n:"II · FEMENINO (Tierra)",b:"#8aa860",s:"#3f5a2c",g:["F","F"]},
+ {id:"androgino",n:"III · ANDRÓGINO (Luna)",b:"#b8c4d0",s:"#5a6b7c",g:["M","F"]}];
+
+/* ===== GEOMETRÍA: lista de piezas (esferas y cápsulas) ===== */
+function pt(az,rho,y){var a=az*Math.PI/180;return [rho*Math.cos(a),y,rho*Math.sin(a)];}
+function sp(c,az,el,r){var a=az*Math.PI/180,e=el*Math.PI/180;
+ return [c[0]+r*Math.cos(e)*Math.cos(a),c[1]+r*Math.sin(e),c[2]+r*Math.cos(e)*Math.sin(a)];}
+function hf(az){return Math.cos(az*Math.PI/180)>0?1:-1;}
+function build(t){
+ var P=[],i,k;
+ function S(p,r,c,h){P.push({k:"s",a:p,b:p,r:r,c:c,h:h});}
+ function C(p,q,r,c,h){P.push({k:"c",a:p,b:q,r:r,c:c,h:h});}
+ S([0,0,0],R,t.b,0); C([0,0.90,0],[0,1.32,0],0.26,t.b,0); S(HEAD,HR,t.b,0);
+ for(i=0;i<2;i++){
+  var az=FACE[i],h=hf(az),col=(t.g[i]==="M"?MALE:FEM);
+  S(sp(HEAD,az-22,14,HR),0.075,INK,h); S(sp(HEAD,az+22,14,HR),0.075,INK,h);
+  C(sp(HEAD,az,-2,HR-0.04),sp(HEAD,az,-8,HR+0.10),0.055,t.s,h);
+  C(sp(HEAD,az-10,-26,HR-0.02),sp(HEAD,az+10,-26,HR-0.02),0.04,INK,h);
+  S(sp(HEAD,az-62,0,HR-0.02),0.115,t.b,h); S(sp(HEAD,az+62,0,HR-0.02),0.115,t.b,h);
+  S(sp([0,0,0],az,-32,R-0.02),0.14,col,h);
+ }
+ for(k=0;k<4;k++){
+  var a=AZ[k],h2=hf(a);
+  C(pt(a,0.95,0.33),pt(a,1.65,0.22),0.135,t.b,h2);
+  C(pt(a,1.65,0.22),pt(a,2.30,0.12),0.115,t.b,h2);
+  S(pt(a,2.42,0.10),0.14,t.b,h2);
+  C(pt(a,0.72,-0.66),pt(a,1.05,-1.35),0.175,t.b,h2);
+  C(pt(a,1.05,-1.35),pt(a,1.20,-1.95),0.15,t.b,h2);
+  C(pt(a,1.18,-2.02),pt(a,1.35,-2.06),0.13,t.b,h2);
+ }
+ return P;
+}
+
+/* ===== LÁMINA 2D (SVG, proyección paralela) ===== */
+function cross(a,b){return [a[1]*b[2]-a[2]*b[1],a[2]*b[0]-a[0]*b[2],a[0]*b[1]-a[1]*b[0]];}
+function dot(a,b){return a[0]*b[0]+a[1]*b[1]+a[2]*b[2];}
+function nrm(a){var L=Math.sqrt(dot(a,a));return [a[0]/L,a[1]/L,a[2]/L];}
+function basis(v){
+ if(v==="top"){return {u:[1,0,0],v:[0,0,-1],w:[0,1,0]};}
+ var w;
+ if(v==="front"){w=[0,0,1];} else if(v==="side"){w=[1,0,0];}
+ else{var a=32*Math.PI/180,e=16*Math.PI/180;w=[Math.cos(e)*Math.cos(a),Math.sin(e),Math.cos(e)*Math.sin(a)];}
+ var u=nrm(cross([0,1,0],w));
+ return {u:u,v:cross(w,u),w:w};
+}
+function prj(p,B,cx,cy,s){return [cx+s*dot(p,B.u),cy-s*dot(p,B.v)];}
+function dep(p,B){return dot([(p.a[0]+p.b[0])/2,(p.a[1]+p.b[1])/2,(p.a[2]+p.b[2])/2],B.w);}
+function f1(x){return Math.round(x*10)/10;}
+function draw(P,t,B,cx,cy,s){
+ var A=P.slice(),o=[],i;
+ A.sort(function(p,q){return dep(p,B)-dep(q,B);});
+ for(i=0;i<A.length;i++){
+  var p=A[i],a=prj(p.a,B,cx,cy,s),b=prj(p.b,B,cx,cy,s);
+  if(p.k==="s"){o.push('<circle cx="'+f1(a[0])+'" cy="'+f1(a[1])+'" r="'+f1(p.r*s)+'" fill="'+p.c+'" stroke="'+t.s+'" stroke-width="1"/>');}
+  else{
+   o.push('<line x1="'+f1(a[0])+'" y1="'+f1(a[1])+'" x2="'+f1(b[0])+'" y2="'+f1(b[1])+'" stroke="'+t.s+'" stroke-width="'+f1(2*p.r*s+2)+'" stroke-linecap="round"/>');
+   o.push('<line x1="'+f1(a[0])+'" y1="'+f1(a[1])+'" x2="'+f1(b[0])+'" y2="'+f1(b[1])+'" stroke="'+p.c+'" stroke-width="'+f1(2*p.r*s)+'" stroke-linecap="round"/>');
+  }
+ }
+ return o.join("");
+}
+function txt(x,y,s,size,col,weight){
+ return '<text x="'+f1(x)+'" y="'+f1(y)+'" font-family="system-ui,sans-serif" font-size="'+size+'" fill="'+col+'" text-anchor="middle"'+(weight?' font-weight="600"':'')+'>'+s+'</text>';
+}
+function lamina(view){
+ var W=1000,H=880,s=56,cx=[170,500,830],o=[],i,j;
+ var vn={obl:"vista oblicua",front:"vista frontal",side:"vista lateral"};
+ o.push('<rect width="'+W+'" height="'+H+'" fill="#faf7f0"/>');
+ o.push(txt(500,34,"EL SER HUMANO ORIGINARIO · Platón, Banquete 189e–190b",20,INK,1));
+ o.push(txt(500,58,"4 brazos + 4 piernas · 2 rostros opuestos · 1 cabeza · 4 orejas · 2 juegos de genitales · tronco esférico",12.5,"#6b6257",0));
+ var B=basis(view),T=basis("top");
+ for(i=0;i<3;i++){
+  var t=TYPES[i],P=build(t);
+  o.push(txt(cx[i],92,t.n,15,t.s,1));
+  o.push(txt(cx[i],112,vn[view],11.5,"#6b6257",0));
+  o.push(draw(P,t,B,cx[i],282,s));
+  if(view==="front"){o.push('<line x1="'+cx[i]+'" y1="150" x2="'+cx[i]+'" y2="418" stroke="#c0392b" stroke-width="1.2" stroke-dasharray="6 5"/>');}
+  for(j=0;j<4;j++){var g=prj(pt(AZ[j],2.6,0),T,cx[i],618,s);
+   o.push('<line x1="'+cx[i]+'" y1="618" x2="'+f1(g[0])+'" y2="'+f1(g[1])+'" stroke="#cfc7b8" stroke-width="1" stroke-dasharray="3 4"/>');}
+  o.push(draw(P,t,T,cx[i],618,s));
+  o.push('<line x1="'+cx[i]+'" y1="474" x2="'+cx[i]+'" y2="758" stroke="#c0392b" stroke-width="1.4" stroke-dasharray="7 5"/>');
+  for(j=0;j<2;j++){
+   var az=FACE[j],sg=(az===0?1:-1),col=(t.g[j]==="M"?MALE:FEM),gl=(t.g[j]==="M"?"\u2642":"\u2640");
+   o.push('<line x1="'+f1(cx[i]+sg*0.85*s)+'" y1="618" x2="'+f1(cx[i]+sg*1.60*s)+'" y2="618" stroke="'+col+'" stroke-width="1" stroke-dasharray="2 3"/>');
+   o.push(txt(cx[i]+sg*1.78*s,625,gl,19,col,0));
+   o.push(txt(cx[i]+sg*1.12*s,592,(az===0?"rostro A":"rostro B"),10,"#6b6257",0));
+  }
+ }
+ o.push(txt(500,447,"PLANTA CENITAL · ubicación de los 8 miembros y plano de corte de Zeus (190d)",13,INK,1));
+ o.push(txt(500,795,"\u2642 / \u2640 = juego de genitales de cada mitad, en la cara externa (191b) · línea roja = plano de corte x=0",12,"#4a4a4a",0));
+ o.push(txt(500,815,"miembros a 45°, 135°, 225° y 315°: cada mitad recibe 2 brazos + 2 piernas, 1 rostro, 2 orejas y 1 juego de genitales",12,"#4a4a4a",0));
+ o.push(txt(500,835,"I: \u2642+\u2642 = dos varones · II: \u2640+\u2640 = dos mujeres · III: \u2642+\u2640 = un varón y una mujer (191a–191c)",12,"#4a4a4a",0));
+ o.push(txt(500,858,"1 unidad = radio del tronco; en el STL exportado, 1 unidad = 20 mm",10.5,"#8a8276",0));
+ return '<svg xmlns="http://www.w3.org/2000/svg" width="'+W+'" height="'+H+'" viewBox="0 0 '+W+' '+H+'">'+o.join("")+'</svg>';
+}
+
+/* ===== MODELO 3D (three.js) ===== */
+var renderer,scene,camera,controls,figs=[],auto=false;
+function mat(c){return new THREE.MeshLambertMaterial({color:c});}
+function mk(p,h){
+ var half=(p.h===0&&h!==0),phi=(h>0?Math.PI/2:-Math.PI/2),th=(h>0?0:Math.PI),g,m,grp,a,b,d,L,s1,s2;
+ if(p.k==="s"){
+  g=half?new THREE.SphereGeometry(p.r,24,16,phi,Math.PI):new THREE.SphereGeometry(p.r,24,16);
+  m=new THREE.Mesh(g,mat(p.c)); m.position.set(p.a[0],p.a[1],p.a[2]); return m;
+ }
+ a=new THREE.Vector3(p.a[0],p.a[1],p.a[2]); b=new THREE.Vector3(p.b[0],p.b[1],p.b[2]);
+ d=new THREE.Vector3().subVectors(b,a); L=d.length(); grp=new THREE.Group();
+ grp.add(new THREE.Mesh(half?new THREE.CylinderGeometry(p.r,p.r,L,16,1,true,th,Math.PI):new THREE.CylinderGeometry(p.r,p.r,L,16,1,false),mat(p.c)));
+ g=half?new THREE.SphereGeometry(p.r,16,12,phi,Math.PI):new THREE.SphereGeometry(p.r,16,12);
+ s1=new THREE.Mesh(g,mat(p.c)); s1.position.y=L/2;
+ s2=new THREE.Mesh(g,mat(p.c)); s2.position.y=-L/2;
+ grp.add(s1); grp.add(s2);
+ grp.position.copy(a).add(b).multiplyScalar(0.5);
+ grp.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0),d.normalize());
+ return grp;
+}
+function wound(geo,y){
+ var m=new THREE.Mesh(geo,new THREE.MeshLambertMaterial({color:WOUND,side:THREE.DoubleSide}));
+ m.rotation.y=Math.PI/2; m.position.y=y; return m;
+}
+function figure(t,x){
+ var P=build(t),G=new THREE.Group(),A=new THREE.Group(),B=new THREE.Group(),i,p;
+ for(i=0;i<P.length;i++){
+  p=P[i];
+  if(p.h===0){A.add(mk(p,1));B.add(mk(p,-1));}
+  else if(p.h>0){A.add(mk(p,0));} else {B.add(mk(p,0));}
+ }
+ A.add(wound(new THREE.CircleGeometry(R,40),0));
+ A.add(wound(new THREE.CircleGeometry(HR,32),HEAD[1]));
+ A.add(wound(new THREE.PlaneGeometry(0.52,0.94),1.11));
+ B.add(wound(new THREE.CircleGeometry(R,40),0));
+ B.add(wound(new THREE.CircleGeometry(HR,32),HEAD[1]));
+ B.add(wound(new THREE.PlaneGeometry(0.52,0.94),1.11));
+ G.add(A); G.add(B); G.position.x=x; G.userData={A:A,B:B};
+ return G;
+}
+function init3(){
+ var host=document.getElementById("v3"),i,dl;
+ if(typeof THREE==="undefined"){host.innerHTML="<p style='padding:20px'>No se pudo cargar three.js: hace falta conexión a internet.</p>";return;}
+ renderer=new THREE.WebGLRenderer({antialias:true});
+ renderer.setPixelRatio(Math.min(window.devicePixelRatio,2));
+ renderer.setSize(host.clientWidth,host.clientHeight);
+ host.appendChild(renderer.domElement);
+ scene=new THREE.Scene(); scene.background=new THREE.Color("#faf7f0");
+ camera=new THREE.PerspectiveCamera(45,host.clientWidth/host.clientHeight,0.1,200);
+ camera.position.set(0,1.6,12);
+ scene.add(new THREE.HemisphereLight(0xffffff,0x554b3a,0.95));
+ dl=new THREE.DirectionalLight(0xffffff,0.55); dl.position.set(6,10,8); scene.add(dl);
+ for(i=0;i<3;i++){var G=figure(TYPES[i],(i-1)*5.6);figs.push(G);scene.add(G);}
+ controls=new THREE.OrbitControls(camera,renderer.domElement);
+ controls.enableDamping=true; controls.target.set(0,0,0); controls.minDistance=4; controls.maxDistance=45;
+ window.addEventListener("resize",function(){
+  renderer.setSize(host.clientWidth,host.clientHeight);
+  camera.aspect=host.clientWidth/host.clientHeight; camera.updateProjectionMatrix();});
+ animate();
+}
+function animate(){
+ requestAnimationFrame(animate);
+ if(auto){for(var i=0;i<figs.length;i++){figs[i].rotation.y+=0.004;}}
+ if(controls){controls.update();}
+ if(renderer){renderer.render(scene,camera);}
+}
+function setCut(v){
+ var d=v/100,i,u;
+ for(i=0;i<figs.length;i++){u=figs[i].userData;
+  u.A.position.x=d*1.8; u.B.position.x=-d*1.8; u.A.rotation.y=d*0.6; u.B.rotation.y=-d*0.6;}
+}
+
+/* ===== EXPORTAR STL binario (mm, Z hacia arriba) ===== */
+function stl(t){
+ var P=build(t),root=new THREE.Group(),i,j,o=84,buf,dv,T=[],bb;
+ for(i=0;i<P.length;i++){root.add(mk(P[i],0));}
+ root.rotation.x=Math.PI/2; root.scale.setScalar(20); root.updateMatrixWorld(true);
+ bb=new THREE.Box3().setFromObject(root);
+ root.position.set(-(bb.min.x+bb.max.x)/2,-(bb.min.y+bb.max.y)/2,-bb.min.z);
+ root.updateMatrixWorld(true);
+ var va=new THREE.Vector3(),vb=new THREE.Vector3(),vc=new THREE.Vector3(),e1=new THREE.Vector3(),e2=new THREE.Vector3(),n=new THREE.Vector3();
+ root.traverse(function(m){
+  if(!m.isMesh){return;}
+  var g=m.geometry,pos=g.attributes.position,idx=g.index,N=idx?idx.count:pos.count,k,i0,i1,i2;
+  for(k=0;k<N;k+=3){
+   i0=idx?idx.getX(k):k; i1=idx?idx.getX(k+1):k+1; i2=idx?idx.getX(k+2):k+2;
+   va.fromBufferAttribute(pos,i0).applyMatrix4(m.matrixWorld);
+   vb.fromBufferAttribute(pos,i1).applyMatrix4(m.matrixWorld);
+   vc.fromBufferAttribute(pos,i2).applyMatrix4(m.matrixWorld);
+   e1.subVectors(vc,vb); e2.subVectors(va,vb); n.crossVectors(e1,e2).normalize();
+   T.push([n.x,n.y,n.z,va.x,va.y,va.z,vb.x,vb.y,vb.z,vc.x,vc.y,vc.z]);
+  }
+ });
+ buf=new ArrayBuffer(84+T.length*50); dv=new DataView(buf);
+ for(i=0;i<80;i++){dv.setUint8(i,0);}
+ dv.setUint32(80,T.length,true);
+ for(i=0;i<T.length;i++){for(j=0;j<12;j++){dv.setFloat32(o,T[i][j],true);o+=4;}dv.setUint16(o,0,true);o+=2;}
+ return buf;
+}
+function dl(name,data,mime){
+ var b=new Blob([data],{type:mime}),u=URL.createObjectURL(b),a=document.createElement("a");
+ a.href=u; a.download=name; document.body.appendChild(a); a.click();
+ document.body.removeChild(a); setTimeout(function(){URL.revokeObjectURL(u);},3000);
+}
+
+/* ===== INTERFAZ ===== */
+function refresh(){document.getElementById("lam").innerHTML=lamina(document.getElementById("view").value);}
+document.getElementById("view").addEventListener("change",refresh);
+document.getElementById("dl2").addEventListener("click",function(){dl("androgino_lamina_2d.svg",lamina(document.getElementById("view").value),"image/svg+xml");});
+document.getElementById("cut").addEventListener("input",function(){setCut(+this.value);});
+document.getElementById("spin").addEventListener("change",function(){auto=this.checked;});
+document.getElementById("dl3").addEventListener("click",function(){var t=TYPES[+document.getElementById("which").value];dl("androgino_"+t.id+".stl",stl(t),"model/stl");});
+refresh(); init3();
+</script>
+</body></html>
